@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShortsCut — Pro Video Editor</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#060608;--bg1:#0d0d12;--bg2:#13131a;--bg3:#1a1a24;--bg4:#22222e;--bg5:#2a2a38;
+  --accent:#7c3aed;--accent2:#a855f7;--accent3:#c084fc;--accentG:#06b6d4;--accentG2:#22d3ee;
+  --accentP:#f472b6;--accentY:#fbbf24;--accentR:#f87171;--accentGr:#4ade80;
+  --text1:#f1f0ff;--text2:#a8a3c8;--text3:#5c587a;--text4:#3a3650;
+  --border1:rgba(124,58,237,0.2);--border2:rgba(124,58,237,0.1);--border3:rgba(255,255,255,0.05);
+  --glass:rgba(13,13,18,0.85);--glass2:rgba(22,22,30,0.9);
+  --shake-red:#ff3366;--shake-blue:#00d4ff;--shake-purple:#b44dff;
+  --timeline-h:220px;--header-h:52px;--sidebar-w:72px;--panel-w:280px;
+  --radius:8px;--radius2:12px;--radius3:16px;
+  --font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{width:100%;height:100%;background:var(--bg0);color:var(--text1);font-family:var(--font);overflow:hidden;font-size:13px}
+#root{width:100%;height:100%;display:flex;flex-direction:column}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--bg5)}
+
+/* Header */
+.header{height:var(--header-h);background:var(--bg1);border-bottom:1px solid var(--border3);
+  display:flex;align-items:center;padding:0 12px;gap:8px;z-index:100;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;margin-right:16px}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accentP));
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--accent3),var(--accentP));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hbtn{height:28px;padding:0 10px;border-radius:6px;border:none;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:500;transition:all .15s}
+.hbtn-ghost{background:transparent;color:var(--text2)}
+.hbtn-ghost:hover{background:var(--bg3);color:var(--text1)}
+.hbtn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.hbtn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.hbtn-danger{background:rgba(248,113,113,0.15);color:var(--accentR);border:1px solid rgba(248,113,113,0.3)}
+.header-center{flex:1;display:flex;align-items:center;justify-content:center;gap:4px}
+.header-right{display:flex;align-items:center;gap:6px}
+.proj-name{font-size:13px;font-weight:600;color:var(--text1);padding:4px 8px;
+  border-radius:6px;background:var(--bg3);border:1px solid var(--border3);cursor:text}
+.res-badge{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;
+  background:var(--bg3);border:1px solid var(--border3);color:var(--text2);transition:all .15s}
+.res-badge:hover{border-color:var(--accent);color:var(--accent3)}
+.res-badge.active{background:rgba(124,58,237,0.2);border-color:var(--accent);color:var(--accent3)}
+
+/* Main layout */
+.main{flex:1;display:flex;overflow:hidden}
+
+/* Left sidebar */
+.sidebar{width:var(--sidebar-w);background:var(--bg1);border-right:1px solid var(--border3);
+  display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;flex-shrink:0}
+.sb-btn{width:52px;height:52px;border-radius:10px;border:none;cursor:pointer;background:transparent;
+  color:var(--text3);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;transition:all .15s;font-size:9px;font-weight:500;font-family:var(--font)}
+.sb-btn:hover{background:var(--bg3);color:var(--text2)}
+.sb-btn.active{background:rgba(124,58,237,0.15);color:var(--accent3)}
+.sb-btn svg{width:20px;height:20px}
+.sb-sep{width:40px;height:1px;background:var(--border3);margin:4px 0}
+
+/* Left Panel */
+.left-panel{width:var(--panel-w);background:var(--bg2);border-right:1px solid var(--border3);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.panel-header{padding:10px 14px;border-bottom:1px solid var(--border3);
+  font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:space-between}
+.panel-scroll{flex:1;overflow-y:auto;padding:8px}
+
+/* Media grid */
+.media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.media-item{border-radius:8px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:9/16;
+  background:var(--bg3);border:1px solid var(--border3);transition:all .2s}
+.media-item:hover{border-color:var(--accent);transform:scale(1.02)}
+.media-item.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(124,58,237,.3)}
+.media-thumb{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;
+  font-size:28px;flex-direction:column;gap:4px;color:var(--text3)}
+.media-dur{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.7);
+  padding:2px 5px;border-radius:4px;font-size:9px;font-family:var(--mono);color:#fff}
+.media-type{position:absolute;top:4px;left:4px;padding:2px 6px;border-radius:4px;
+  font-size:8px;font-weight:600;text-transform:uppercase}
+.media-type.video{background:rgba(124,58,237,.8);color:#fff}
+.media-type.audio{background:rgba(6,182,212,.8);color:#fff}
+.media-type.image{background:rgba(74,222,128,.8);color:#fff}
+.upload-zone{border:2px dashed var(--border1);border-radius:10px;padding:20px;text-align:center;
+  cursor:pointer;transition:all .2s;color:var(--text3);margin-bottom:8px}
+.upload-zone:hover{border-color:var(--accent);color:var(--accent3);background:rgba(124,58,237,.05)}
+.upload-zone svg{width:28px;height:28px;margin:0 auto 6px}
+
+/* Effects Panel */
+.effect-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.effect-card{background:var(--bg3);border:1px solid var(--border3);border-radius:8px;
+  padding:8px;cursor:pointer;transition:all .15s;text-align:center}
+.effect-card:hover{border-color:var(--accent);background:rgba(124,58,237,.1)}
+.effect-card.active{border-color:var(--accent);background:rgba(124,58,237,.2)}
+.effect-icon{font-size:20px;margin-bottom:4px}
+.effect-name{font-size:10px;font-weight:500;color:var(--text2)}
+.effect-cat{font-size:9px;color:var(--text3);margin-top:2px}
+.section-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.05em;
+  text-transform:uppercase;padding:8px 2px 4px;margin-top:4px}
+
+/* SHAKE PANEL */
+.shake-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.shake-card{border-radius:8px;padding:8px;cursor:pointer;transition:all .2s;text-align:center;
+  position:relative;overflow:hidden}
+.shake-card::before{content:'';position:absolute;inset:0;opacity:.15;transition:.2s}
+.shake-card:hover::before{opacity:.3}
+.shake-card.velocity{background:linear-gradient(135deg,rgba(248,113,113,.2),rgba(251,191,36,.1));border:1px solid rgba(248,113,113,.3)}
+.shake-card.impact{background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(168,85,247,.1));border:1px solid rgba(124,58,237,.3)}
+.shake-card.bass{background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(34,211,238,.1));border:1px solid rgba(6,182,212,.3)}
+.shake-card.zoom{background:linear-gradient(135deg,rgba(74,222,128,.2),rgba(6,182,212,.1));border:1px solid rgba(74,222,128,.3)}
+.shake-card.rotation{background:linear-gradient(135deg,rgba(244,114,182,.2),rgba(248,113,113,.1));border:1px solid rgba(244,114,182,.3)}
+.shake-card.rgb{background:linear-gradient(135deg,rgba(248,113,113,.15),rgba(124,58,237,.15),rgba(6,182,212,.15));border:1px solid rgba(168,85,247,.3)}
+.shake-card.blur{background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(124,58,237,.1));border:1px solid rgba(255,255,255,.1)}
+.shake-card.cinematic{background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(248,113,113,.1));border:1px solid rgba(251,191,36,.2)}
+.shake-name{font-size:10px;font-weight:600;color:var(--text1);margin-top:4px;position:relative}
+.shake-tag{font-size:8px;color:var(--text3);position:relative}
+.shake-intensity{display:flex;gap:2px;justify-content:center;margin-top:3px;position:relative}
+.shake-dot{width:5px;height:5px;border-radius:50%;background:var(--text4);transition:.15s}
+.shake-dot.on{background:var(--accentR)}
+.shake-slider-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.shake-slider-row label{font-size:10px;color:var(--text2);width:60px;flex-shrink:0}
+.shake-slider-row input[type=range]{flex:1;height:4px;accent-color:var(--accent)}
+.shake-slider-row span{font-size:10px;font-family:var(--mono);color:var(--accent3);width:28px;text-align:right}
+
+/* Preview area */
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg0);position:relative;overflow:hidden;min-width:0}
+.preview-canvas-wrap{position:relative;border-radius:12px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--border3),0 20px 60px rgba(0,0,0,.6);transition:all .3s}
+.preview-canvas{background:#000;display:block}
+.preview-overlay{position:absolute;inset:0;pointer-events:none}
+
+/* Cinematic bars */
+.cine-bar{position:absolute;left:0;right:0;height:0;background:#000;transition:.3s;pointer-events:none}
+.cine-bar.top{top:0}
+.cine-bar.bottom{bottom:0}
+.cine-bars-active .cine-bar{height:8%}
+
+/* Preview controls */
+.preview-controls{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 16px;
+  background:var(--bg2);border-radius:40px;border:1px solid var(--border3)}
+.pctrl-btn{width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;background:var(--bg3);
+  color:var(--text1);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pctrl-btn:hover{background:var(--bg4);transform:scale(1.05)}
+.pctrl-btn.play{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.pctrl-btn.play:hover{opacity:.9;transform:scale(1.05)}
+.pctrl-time{font-family:var(--mono);font-size:11px;color:var(--text2);min-width:80px;text-align:center}
+
+/* Preview text overlay demo */
+.preview-text-overlay{position:absolute;bottom:15%;left:0;right:0;text-align:center;pointer-events:none}
+.glow-text{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;
+  color:#fff;text-shadow:0 0 20px rgba(168,85,247,.8),0 0 40px rgba(124,58,237,.5),0 0 60px rgba(244,114,182,.3);
+  letter-spacing:2px;text-transform:uppercase;animation:textPulse 2s ease-in-out infinite}
+@keyframes textPulse{0%,100%{text-shadow:0 0 20px rgba(168,85,247,.8),0 0 40px rgba(124,58,237,.5);opacity:1}
+  50%{text-shadow:0 0 30px rgba(168,85,247,1),0 0 60px rgba(124,58,237,.8),0 0 80px rgba(244,114,182,.5);opacity:.9}}
+
+/* Shake animations */
+@keyframes velocityShake{0%{transform:translate(0,0) rotate(0)}
+  10%{transform:translate(-8px,-4px) rotate(-1.5deg)}20%{transform:translate(8px,4px) rotate(1.5deg)}
+  30%{transform:translate(-6px,6px) rotate(-1deg)}40%{transform:translate(6px,-6px) rotate(1deg)}
+  50%{transform:translate(-4px,2px) rotate(-.5deg)}60%{transform:translate(4px,-2px) rotate(.5deg)}
+  70%{transform:translate(-2px,4px) rotate(-1deg)}80%{transform:translate(2px,-4px) rotate(1deg)}
+  90%{transform:translate(-1px,1px) rotate(0)}100%{transform:translate(0,0) rotate(0)}}
+@keyframes impactShake{0%{transform:scale(1.05) translate(0,0)}
+  5%{transform:scale(.97) translate(-12px,8px) rotate(-2deg)}
+  15%{transform:scale(1.03) translate(10px,-6px) rotate(2deg)}
+  25%{transform:scale(.98) translate(-6px,4px) rotate(-1deg)}
+  40%{transform:scale(1.01) translate(4px,-2px) rotate(.5deg)}
+  60%{transform:translate(0,0) rotate(0)}100%{transform:translate(0,0)}}
+@keyframes bassShake{0%,100%{transform:scale(1)}25%{transform:scale(1.03) translateY(-3px)}
+  75%{transform:scale(.98) translateY(2px)}}
+@keyframes zoomShake{0%{transform:scale(1) translate(0,0)}
+  20%{transform:scale(1.08) translate(-3px,-2px)}50%{transform:scale(.95) translate(2px,2px)}
+  80%{transform:scale(1.04) translate(-1px,1px)}100%{transform:scale(1)}}
+@keyframes rgbSplit{0%,100%{filter:none}
+  25%{filter:drop-shadow(3px 0 0 rgba(255,0,0,.7)) drop-shadow(-3px 0 0 rgba(0,255,255,.7))}
+  50%{filter:drop-shadow(0 3px 0 rgba(0,255,0,.5)) drop-shadow(0 -3px 0 rgba(255,0,255,.5))}
+  75%{filter:drop-shadow(-5px 0 0 rgba(255,0,0,.7)) drop-shadow(5px 0 0 rgba(0,255,255,.7))}}
+@keyframes rotationShake{0%{transform:rotate(0)}20%{transform:rotate(-4deg) scale(1.04)}
+  40%{transform:rotate(4deg) scale(.97)}60%{transform:rotate(-2deg) scale(1.02)}
+  80%{transform:rotate(2deg)}100%{transform:rotate(0)}}
+@keyframes blurShake{0%,100%{filter:blur(0)}30%{filter:blur(3px)}70%{filter:blur(1px)}}
+@keyframes flashShake{0%{filter:brightness(1) contrast(1)}15%{filter:brightness(2.5) contrast(1.5)}
+  25%{filter:brightness(.7) contrast(1.2)}50%{filter:brightness(1.8) contrast(1.3)}
+  75%{filter:brightness(.8)}100%{filter:brightness(1) contrast(1)}}
+
+.shake-velocity{animation:velocityShake .4s ease-in-out}
+.shake-impact{animation:impactShake .5s ease-in-out}
+.shake-bass{animation:bassShake .3s ease-in-out infinite}
+.shake-zoom{animation:zoomShake .5s ease-in-out}
+.shake-rgb{animation:rgbSplit .4s ease-in-out}
+.shake-rotation{animation:rotationShake .5s ease-in-out}
+.shake-blur{animation:blurShake .3s ease-in-out}
+.shake-flash{animation:flashShake .4s ease-in-out}
+
+/* Right panel */
+.right-panel{width:var(--panel-w);background:var(--bg2);border-left:1px solid var(--border3);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.prop-section{padding:8px 12px;border-bottom:1px solid var(--border3)}
+.prop-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.prop-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.prop-label{font-size:11px;color:var(--text2);width:70px;flex-shrink:0}
+.prop-input{flex:1;height:26px;background:var(--bg3);border:1px solid var(--border3);
+  border-radius:6px;color:var(--text1);font-family:var(--font);font-size:11px;padding:0 8px;
+  outline:none;transition:.15s}
+.prop-input:focus{border-color:var(--accent)}
+.prop-slider{flex:1;height:4px;accent-color:var(--accent);cursor:pointer}
+.prop-val{font-size:10px;font-family:var(--mono);color:var(--accent3);min-width:32px;text-align:right}
+.color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.color-swatch{height:22px;border-radius:5px;cursor:pointer;transition:.15s;border:2px solid transparent}
+.color-swatch:hover,.color-swatch.active{border-color:#fff;transform:scale(1.1)}
+
+/* Keyframe editor */
+.kf-track{height:28px;background:var(--bg3);border-radius:6px;position:relative;margin:4px 0;
+  border:1px solid var(--border3);cursor:pointer}
+.kf-dot{position:absolute;top:50%;transform:translate(-50%,-50%);
+  width:10px;height:10px;border-radius:50%;background:var(--accent3);border:2px solid var(--bg1);
+  cursor:grab;transition:.1s}
+.kf-dot:hover{background:var(--accentP);transform:translate(-50%,-50%) scale(1.3)}
+.kf-line{position:absolute;top:50%;height:2px;background:rgba(168,85,247,.3);transform:translateY(-50%)}
+
+/* Bottom: Timeline */
+.timeline-area{height:var(--timeline-h);background:var(--bg1);border-top:1px solid var(--border3);
+  flex-shrink:0;display:flex;flex-direction:column;overflow:hidden}
+.timeline-header{height:30px;background:var(--bg2);border-bottom:1px solid var(--border3);
+  display:flex;align-items:center;gap:8px;padding:0 12px}
+.tl-btn{height:22px;padding:0 8px;border-radius:5px;border:none;cursor:pointer;
+  background:var(--bg3);color:var(--text2);font-size:10px;font-family:var(--font);
+  transition:.15s;font-weight:500}
+.tl-btn:hover{background:var(--bg4);color:var(--text1)}
+.tl-btn.active{background:rgba(124,58,237,.2);color:var(--accent3);border:1px solid var(--border1)}
+.tl-zoom{display:flex;align-items:center;gap:6px;margin-left:auto}
+.tl-zoom span{font-size:10px;color:var(--text3)}
+.tl-zoom input{width:80px;height:4px;accent-color:var(--accent)}
+.timeline-body{flex:1;display:flex;overflow:hidden}
+.track-labels{width:120px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border3)}
+.track-label{height:44px;display:flex;align-items:center;padding:0 10px;gap:8px;
+  border-bottom:1px solid var(--border3);font-size:10px;color:var(--text2)}
+.track-label-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.track-label-icon.video{background:rgba(124,58,237,.2);color:var(--accent3)}
+.track-label-icon.audio{background:rgba(6,182,212,.2);color:var(--accentG)}
+.track-label-icon.fx{background:rgba(248,113,113,.2);color:var(--accentR)}
+.track-label-icon.text{background:rgba(74,222,128,.2);color:var(--accentGr)}
+.track-mute{width:16px;height:16px;border-radius:3px;border:1px solid var(--border3);
+  background:transparent;cursor:pointer;margin-left:auto;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--text3)}
+.timeline-tracks{flex:1;overflow-x:auto;overflow-y:hidden;position:relative;cursor:col-resize}
+.tracks-inner{position:relative;min-height:100%;display:flex;flex-direction:column}
+.track-row{height:44px;border-bottom:1px solid var(--border3);position:relative;background:var(--bg1)}
+.track-row:hover{background:rgba(124,58,237,.03)}
+.clip{position:absolute;top:4px;height:36px;border-radius:6px;cursor:pointer;overflow:hidden;
+  transition:box-shadow .15s;border:1px solid transparent;user-select:none}
+.clip:hover{box-shadow:0 0 0 2px rgba(168,85,247,.5)}
+.clip.selected{box-shadow:0 0 0 2px var(--accent3)}
+.clip-video{background:linear-gradient(135deg,rgba(124,58,237,.5),rgba(76,29,149,.5));border-color:rgba(124,58,237,.4)}
+.clip-audio{background:linear-gradient(135deg,rgba(6,182,212,.3),rgba(14,116,144,.3));border-color:rgba(6,182,212,.3)}
+.clip-fx{background:linear-gradient(135deg,rgba(248,113,113,.3),rgba(153,51,51,.3));border-color:rgba(248,113,113,.3)}
+.clip-text{background:linear-gradient(135deg,rgba(74,222,128,.3),rgba(20,83,45,.3));border-color:rgba(74,222,128,.3)}
+.clip-label{padding:2px 6px;font-size:9px;font-weight:600;color:rgba(255,255,255,.9);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.clip-wave{position:absolute;bottom:0;left:0;right:0;height:16px;opacity:.4}
+.clip-handle{position:absolute;top:0;bottom:0;width:6px;cursor:ew-resize;z-index:2}
+.clip-handle-l{left:0;border-radius:6px 0 0 6px;background:rgba(255,255,255,.1)}
+.clip-handle-r{right:0;border-radius:0 6px 6px 0;background:rgba(255,255,255,.1)}
+.clip-handle:hover{background:rgba(255,255,255,.3)}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accentR);z-index:10;pointer-events:none}
+.playhead::before{content:'';position:absolute;top:-4px;left:-6px;width:14px;height:10px;
+  background:var(--accentR);clip-path:polygon(0 0,100% 0,50% 100%);border-radius:2px 2px 0 0}
+.ruler{height:20px;background:var(--bg2);position:sticky;top:0;border-bottom:1px solid var(--border3);
+  display:flex;align-items:flex-end;padding-bottom:2px;z-index:5}
+.ruler-tick{position:absolute;bottom:0;width:1px;background:var(--border3)}
+.ruler-tick.major{height:8px;background:var(--bg5)}
+.ruler-label{position:absolute;font-size:8px;font-family:var(--mono);color:var(--text3);
+  bottom:10px;transform:translateX(-50%)}
+
+/* Beat markers */
+.beat-marker{position:absolute;top:0;bottom:0;width:2px;background:rgba(251,191,36,.3);pointer-events:none}
+.beat-marker.strong{background:rgba(251,191,36,.6);width:3px}
+
+/* Transition zones */
+.transition-zone{position:absolute;top:4px;height:36px;width:24px;border-radius:0;cursor:pointer;
+  background:linear-gradient(90deg,rgba(168,85,247,.6),rgba(244,114,182,.4));
+  display:flex;align-items:center;justify-content:center;font-size:8px;z-index:5;transition:.15s}
+.transition-zone:hover{opacity:.8;transform:scaleY(1.05)}
+
+/* Export modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  z-index:1000;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--bg2);border-radius:16px;border:1px solid var(--border1);
+  width:400px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px;
+  background:linear-gradient(135deg,var(--accent3),var(--accentP));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.export-option{border:1px solid var(--border3);border-radius:10px;padding:12px;margin-bottom:8px;
+  cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px}
+.export-option:hover{border-color:var(--accent);background:rgba(124,58,237,.08)}
+.export-option.selected{border-color:var(--accent);background:rgba(124,58,237,.12)}
+.export-badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.export-badge._4k{background:rgba(124,58,237,.3);color:var(--accent3)}
+.export-badge._1080{background:rgba(6,182,212,.2);color:var(--accentG)}
+.export-badge._720{background:rgba(74,222,128,.2);color:var(--accentGr)}
+.progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin:12px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accentP));
+  transition:width .3s;border-radius:3px}
+
+/* Beat sync indicator */
+.beat-pulse{width:8px;height:8px;border-radius:50%;background:var(--accentY);
+  animation:beatPulse .5s ease-in-out infinite}
+@keyframes beatPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+/* Tabs */
+.tab-row{display:flex;border-bottom:1px solid var(--border3);background:var(--bg2)}
+.tab{padding:6px 12px;font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;
+  border-bottom:2px solid transparent;transition:.15s;flex:1;text-align:center}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--accent3);border-bottom-color:var(--accent)}
+
+/* Notification */
+.notif{position:fixed;top:60px;right:16px;background:var(--bg3);border:1px solid var(--border1);
+  border-radius:10px;padding:10px 16px;font-size:12px;color:var(--text1);z-index:999;
+  animation:notifIn .3s ease-out;max-width:260px}
+@keyframes notifIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.notif-success{border-color:rgba(74,222,128,.4);color:var(--accentGr)}
+.notif-info{border-color:var(--border1);color:var(--accent3)}
+
+/* Mobile responsive */
+@media(max-width:768px){
+  :root{--panel-w:0px;--sidebar-w:0px}
+  .sidebar,.left-panel,.right-panel{display:none}
+  .preview-area{padding:8px}
+}
+@media(max-width:1200px){
+  :root{--panel-w:220px}
+}
+
+/* Glow effect on preview when active shake */
+.preview-glow-velocity{box-shadow:0 0 0 1px var(--border3),0 0 40px rgba(248,113,113,.3),0 0 80px rgba(251,191,36,.1)!important}
+.preview-glow-rgb{box-shadow:0 0 0 1px var(--border3),0 0 30px rgba(248,113,113,.2),0 0 30px rgba(6,182,212,.2),0 0 30px rgba(124,58,237,.2)!important}
+.preview-glow-impact{box-shadow:0 0 0 1px var(--border3),0 0 50px rgba(124,58,237,.4)!important}
+
+/* Auto-save dot */
+.autosave{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)}
+.autosave-dot{width:6px;height:6px;border-radius:50%;background:var(--accentGr)}
+.autosave-dot.saving{background:var(--accentY);animation:savePulse 1s infinite}
+@keyframes savePulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+input[type=range]{-webkit-appearance:none;appearance:none;background:var(--bg4);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent3);cursor:pointer;border:2px solid var(--bg1)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback} = React;
+
+const SHAKES = [
+  {id:'velocity',name:'Velocity',tag:'TikTok Style',type:'velocity',dots:5,emoji:'⚡'},
+  {id:'impact',name:'Impact',tag:'Hit Effect',type:'impact',dots:4,emoji:'💥'},
+  {id:'bass',name:'Bass Drop',tag:'Music Sync',type:'bass',dots:3,emoji:'🔊'},
+  {id:'zoom',name:'Zoom Shake',tag:'Camera',type:'zoom',dots:4,emoji:'🔍'},
+  {id:'rotation',name:'Spin Shake',tag:'360° Vibe',type:'rotation',dots:3,emoji:'🌀'},
+  {id:'rgb',name:'RGB Split',tag:'Glitch',type:'rgb',dots:5,emoji:'🌈'},
+  {id:'blur',name:'Motion Blur',tag:'Smooth',type:'blur',dots:2,emoji:'💨'},
+  {id:'flash',name:'Flash Cut',tag:'Cinematic',type:'flash',dots:4,emoji:'⚡'},
+];
+
+const EFFECTS = [
+  {id:'glow',name:'Glow',cat:'Visual',emoji:'✨'},{id:'vhs',name:'VHS',cat:'Retro',emoji:'📼'},
+  {id:'grain',name:'Film Grain',cat:'Cinematic',emoji:'🎞️'},{id:'glitch',name:'Glitch',cat:'Digital',emoji:'💫'},
+  {id:'chromatic',name:'Chromatic',cat:'Lens',emoji:'🔴'},{id:'fisheye',name:'Fisheye',cat:'Lens',emoji:'👁️'},
+  {id:'neon',name:'Neon',cat:'Glow',emoji:'🌟'},{id:'strobe',name:'Strobe',cat:'Flash',emoji:'⚡'},
+  {id:'cinebars',name:'Cine Bars',cat:'Format',emoji:'🎬'},{id:'particles',name:'Particles',cat:'FX',emoji:'✦'},
+  {id:'lightleak',name:'Light Leak',cat:'Film',emoji:'☀️'},{id:'warp',name:'Warp',cat:'Distort',emoji:'🌊'},
+];
+
+const TRANSITIONS = [
+  {id:'swipe',name:'Swipe',emoji:'↔️'},{id:'zoom_t',name:'Zoom',emoji:'🔍'},
+  {id:'blur_t',name:'Blur',emoji:'💨'},{id:'spin',name:'Spin',emoji:'🌀'},
+  {id:'shake_t',name:'Shake',emoji:'⚡'},{id:'flash_t',name:'Flash',emoji:'✨'},
+  {id:'warp_t',name:'Warp',emoji:'🌊'},{id:'rgb_t',name:'RGB',emoji:'🌈'},
+];
+
+const INITIAL_CLIPS = [
+  {id:'c1',track:0,start:0,duration:180,label:'Main Clip.mp4',type:'video'},
+  {id:'c2',track:0,start:200,duration:120,label:'Scene 2.mp4',type:'video'},
+  {id:'c3',track:0,start:340,duration:100,label:'Hook.mp4',type:'video'},
+  {id:'c4',track:1,start:0,duration:400,label:'Background Music.mp3',type:'audio'},
+  {id:'c5',track:1,start:420,duration:80,label:'SFX Impact.mp3',type:'audio'},
+  {id:'c6',track:2,start:60,duration:160,label:'Overlay.mp4',type:'video'},
+  {id:'c7',track:3,start:20,duration:100,label:'Title Text',type:'text'},
+  {id:'c8',track:3,start:200,duration:80,label:'Subtitle',type:'text'},
+  {id:'c9',track:4,start:0,duration:500,label:'Velocity Shake FX',type:'fx'},
+];
+
+const TRACK_DEFS = [
+  {id:0,label:'Video 1',icon:'video',type:'video'},
+  {id:1,label:'Audio 1',icon:'audio',type:'audio'},
+  {id:2,label:'Video 2',icon:'video',type:'video'},
+  {id:3,label:'Text',icon:'text',type:'text'},
+  {id:4,label:'FX',icon:'fx',type:'fx'},
+];
+
+function Icon({name,size=16}){
+  const icons={
+    play:<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>,
+    pause:<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>,
+    stop:<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>,
+    cut:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>,
+    undo:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>,
+    redo:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg>,
+    video:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
+    music:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
+    image:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+    text:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>,
+    effects:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+    shake:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3l18 18M3 21L21 3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>,
+    transitions:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><path d="M7 17l10-10M10 7l4 4-4 4"/></svg>,
+    color:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 12l-3-3"/></svg>,
+    keyframes:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>,
+    export:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    settings:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.92 2.06l-1.5 1.87a7.06 7.06 0 0 0-.48-.66"/></svg>,
+    zoom_in:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
+    zoom_out:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
+    beatSync:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+    fullscreen:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>,
+  };
+  return <span style={{display:'inline-flex',alignItems:'center',width:size,height:size}}>{icons[name]||<span/>}</span>;
+}
+
+function App(){
+  const [activePanel,setActivePanel]=useState('effects');
+  const [activeTab,setActiveTab]=useState('shakes');
+  const [playing,setPlaying]=useState(false);
+  const [playhead,setPlayhead]=useState(50);
+  const [selectedClip,setSelectedClip]=useState('c1');
+  const [clips,setClips]=useState(INITIAL_CLIPS);
+  const [activeShake,setActiveShake]=useState(null);
+  const [shakeIntensity,setShakeIntensity]=useState(70);
+  const [shakeSpeed,setShakeSpeed]=useState(50);
+  const [activeEffects,setActiveEffects]=useState(['glow']);
+  const [showExport,setShowExport]=useState(false);
+  const [exportProgress,setExportProgress]=useState(0);
+  const [exporting,setExporting]=useState(false);
+  const [tlZoom,setTlZoom]=useState(1);
+  const [resolution,setResolution]=useState('1080p');
+  const [notif,setNotif]=useState(null);
+  const [beatMarkers,setBeatMarkers]=useState([80,160,240,320,400,480]);
+  const [beatSync,setBeatSync]=useState(false);
+  const [brightness,setBrightness]=useState(50);
+  const [contrast,setContrast]=useState(50);
+  const [saturation,setSaturation]=useState(50);
+  const [opacity,setOpacity]=useState(100);
+  const [scale,setScale]=useState(100);
+  const [autoSaving,setAutoSaving]=useState(false);
+  const [savedTime,setSavedTime]=useState('Just now');
+  const [history,setHistory]=useState([]);
+  const [histIdx,setHistIdx]=useState(-1);
+  const [cineMode,setCineMode]=useState(false);
+  const [previewText,setPreviewText]=useState('VIRAL CONTENT');
+  const previewRef=useRef();
+  const rafRef=useRef();
+  const playheadRef=useRef(50);
+
+  const showNotif=(msg,type='info')=>{
+    setNotif({msg,type});
+    setTimeout(()=>setNotif(null),2500);
+  };
+
+  const triggerAutoSave=()=>{
+    setAutoSaving(true);
+    setTimeout(()=>{setAutoSaving(false);setSavedTime('Just now');},1200);
+  };
+
+  useEffect(()=>{
+    const iv=setInterval(triggerAutoSave,30000);
+    return()=>clearInterval(iv);
+  },[]);
+
+  useEffect(()=>{
+    if(playing){
+      const tick=()=>{
+        playheadRef.current=(playheadRef.current+.5)%600;
+        setPlayhead(playheadRef.current);
+        rafRef.current=requestAnimationFrame(tick);
+      };
+      rafRef.current=requestAnimationFrame(tick);
+    } else {
+      cancelAnimationFrame(rafRef.current);
+    }
+    return()=>cancelAnimationFrame(rafRef.current);
+  },[playing]);
+
+  const applyShake=(shake)=>{
+    const el=previewRef.current;
+    if(!el)return;
+    el.classList.remove(...SHAKES.map(s=>`shake-${s.id}`));
+    el.classList.remove(...['preview-glow-velocity','preview-glow-rgb','preview-glow-impact']);
+    if(activeShake===shake.id){setActiveShake(null);return;}
+    setActiveShake(shake.id);
+    el.classList.add(`shake-${shake.id}`);
+    if(shake.id==='velocity'||shake.id==='flash')el.parentElement.classList.add('preview-glow-velocity');
+    if(shake.id==='rgb')el.parentElement.classList.add('preview-glow-rgb');
+    if(shake.id==='impact')el.parentElement.classList.add('preview-glow-impact');
+    setTimeout(()=>{
+      el.classList.remove(`shake-${shake.id}`);
+      el.parentElement.classList.remove('preview-glow-velocity','preview-glow-rgb','preview-glow-impact');
+      setActiveShake(null);
+    }, 600);
+    showNotif(`🎬 ${shake.name} applied!`,'info');
+    triggerAutoSave();
+  };
+
+  const toggleEffect=(id)=>{
+    setActiveEffects(prev=>prev.includes(id)?prev.filter(e=>e!==id):[...prev,id]);
+    showNotif(`Effect ${activeEffects.includes(id)?'removed':'applied'}`,'info');
+  };
+
+  const exportVideo=()=>{
+    setExporting(true);setExportProgress(0);
+    showNotif('🚀 Export started!','info');
+    let p=0;
+    const iv=setInterval(()=>{
+      p+=Math.random()*8+3;
+      if(p>=100){p=100;clearInterval(iv);
+        setTimeout(()=>{setExporting(false);setExportProgress(0);setShowExport(false);
+          showNotif('✅ Export complete! 1080p ready','success');},500);}
+      setExportProgress(Math.min(p,100));
+    },150);
+  };
+
+  const getPreviewFilter=()=>{
+    const f=[];
+    if(activeEffects.includes('glow')) f.push('drop-shadow(0 0 8px rgba(168,85,247,.5))');
+    if(activeEffects.includes('grain')) f.push('contrast(1.1) brightness(1.05)');
+    if(activeEffects.includes('vhs')) f.push('saturate(1.3) hue-rotate(-5deg)');
+    const b=0.5+brightness/100;
+    const c=0.5+contrast/100;
+    const s=saturation/50;
+    f.push(`brightness(${b.toFixed(2)}) contrast(${c.toFixed(2)}) saturate(${s.toFixed(2)})`);
+    return f.join(' ');
+  };
+
+  const pxPerFrame=2*tlZoom;
+  const totalPx=600*pxPerFrame;
+
+  const PANEL_TABS=[
+    {id:'media',icon:'video',label:'Media'},
+    {id:'effects',icon:'effects',label:'Effects'},
+    {id:'shakes',icon:'shake',label:'Shakes'},
+    {id:'transitions',icon:'transitions',label:'Trans.'},
+    {id:'text',icon:'text',label:'Text'},
+    {id:'color',icon:'color',label:'Color'},
+    {id:'keyframes',icon:'keyframes',label:'Keys'},
+  ];
+
+  const renderLeftPanel=()=>{
+    if(activePanel==='media') return <MediaPanel showNotif={showNotif}/>;
+    if(activePanel==='effects') return <EffectsPanel activeEffects={activeEffects} toggleEffect={toggleEffect}/>;
+    if(activePanel==='shakes') return <ShakesPanel shakes={SHAKES} activeShake={activeShake} applyShake={applyShake} intensity={shakeIntensity} setIntensity={setShakeIntensity} speed={shakeSpeed} setSpeed={setShakeSpeed} beatSync={beatSync} setBeatSync={setBeatSync}/>;
+    if(activePanel==='transitions') return <TransitionsPanel transitions={TRANSITIONS}/>;
+    if(activePanel==='text') return <TextPanel previewText={previewText} setPreviewText={setPreviewText} showNotif={showNotif}/>;
+    if(activePanel==='color') return <ColorPanel brightness={brightness} setBrightness={setBrightness} contrast={contrast} setContrast={setContrast} saturation={saturation} setSaturation={setSaturation}/>;
+    if(activePanel==='keyframes') return <KeyframesPanel/>;
+    return null;
+  };
+
+  return (
+    <>
+    <div style={{display:'flex',flexDirection:'column',width:'100%',height:'100vh',overflow:'hidden'}}>
+      {/* Header */}
+      <div className="header">
+        <div className="logo">
+          <div className="logo-icon">✂️</div>
+          <span className="logo-text">ShortsCut</span>
+        </div>
+        <button className="hbtn hbtn-ghost" onClick={()=>showNotif('↩ Undone','info')}><Icon name="undo" size={13}/>&nbsp;Undo</button>
+        <button className="hbtn hbtn-ghost" onClick={()=>showNotif('↪ Redone','info')}><Icon name="redo" size={13}/>&nbsp;Redo</button>
+        <div className="header-center">
+          <span className="proj-name">Untitled_Shorts_01</span>
+          <div className="autosave">
+            <div className={`autosave-dot ${autoSaving?'saving':''}`}/>
+            {autoSaving?'Saving...':savedTime}
+          </div>
+        </div>
+        <div className="header-right">
+          <span className={`res-badge ${resolution==='720p'?'active':''}`} onClick={()=>setResolution('720p')}>720p</span>
+          <span className={`res-badge ${resolution==='1080p'?'active':''}`} onClick={()=>setResolution('1080p')}>1080p</span>
+          <span className={`res-badge ${resolution==='4K'?'active':''}`} onClick={()=>setResolution('4K')}>4K</span>
+          <button className="hbtn hbtn-ghost" onClick={()=>setCineMode(m=>!m)} style={{color:cineMode?'var(--accent3)':undefined}}>🎬 Cine</button>
+          <button className="hbtn hbtn-primary" onClick={()=>setShowExport(true)}><Icon name="export" size={13}/>&nbsp;Export</button>
+        </div>
+      </div>
+
+      {/* Main */}
+      <div className="main">
+        {/* Left Sidebar icons */}
+        <div className="sidebar">
+          {PANEL_TABS.map(p=>(
+            <button key={p.id} className={`sb-btn ${activePanel===p.id?'active':''}`} onClick={()=>setActivePanel(p.id)}>
+              <Icon name={p.icon} size={20}/>{p.label}
+            </button>
+          ))}
+          <div className="sb-sep"/>
+          <button className="sb-btn" onClick={()=>showNotif('Beat detection running...','info')}>
+            <Icon name="beatSync" size={20}/>Beat
+          </button>
+          <button className="sb-btn" onClick={()=>showNotif('Fullscreen preview','info')}>
+            <Icon name="fullscreen" size={20}/>Full
+          </button>
+        </div>
+
+        {/* Left Panel */}
+        <div className="left-panel">{renderLeftPanel()}</div>
+
+        {/* Preview */}
+        <div className="preview-area">
+          <div className={`preview-canvas-wrap ${cineMode?'cine-bars-active':''}`} style={{width:270,height:480}}>
+            <canvas ref={previewRef} className="preview-canvas" width={270} height={480}
+              style={{filter:getPreviewFilter(),transition:'filter .3s',transform:`scale(${scale/100})`,transformOrigin:'center',width:270,height:480}}/>
+            <PreviewCanvas playing={playing} playhead={playhead} activeEffects={activeEffects} cineMode={cineMode}/>
+            <div className="cine-bar top"/>
+            <div className="cine-bar bottom"/>
+            {true&&<div className="preview-text-overlay">
+              <div className="glow-text" style={{fontSize:16}}>{previewText}</div>
+            </div>}
+          </div>
+          <div className="preview-controls">
+            <button className="pctrl-btn" onClick={()=>{setPlayhead(0);playheadRef.current=0;}}>⏮</button>
+            <button className="pctrl-btn" onClick={()=>setPlayhead(p=>Math.max(0,p-5))}>⏪</button>
+            <button className="pctrl-btn play" onClick={()=>setPlaying(p=>!p)}>
+              <Icon name={playing?'pause':'play'} size={18}/>
+            </button>
+            <button className="pctrl-btn" onClick={()=>setPlayhead(p=>Math.min(600,p+5))}>⏩</button>
+            <button className="pctrl-btn" onClick={()=>{setPlaying(false);setPlayhead(0);playheadRef.current=0;}}>⏹</button>
+            <span className="pctrl-time">{formatTime(playhead)} / 0:20</span>
+            {beatSync&&<div className="beat-pulse"/>}
+          </div>
+        </div>
+
+        {/* Right panel - Properties */}
+        <div className="right-panel">
+          <div className="panel-header">Properties</div>
+          <div style={{overflowY:'auto',flex:1}}>
+            <div className="prop-section">
+              <div className="prop-title">📐 Transform</div>
+              <div className="prop-row">
+                <span className="prop-label">Scale</span>
+                <input type="range" className="prop-slider" min={10} max={200} value={scale} onChange={e=>setScale(+e.target.value)}/>
+                <span className="prop-val">{scale}%</span>
+              </div>
+              <div className="prop-row">
+                <span className="prop-label">Opacity</span>
+                <input type="range" className="prop-slider" min={0} max={100} value={opacity} onChange={e=>setOpacity(+e.target.value)}/>
+                <span className="prop-val">{opacity}%</span>
+              </div>
+              <div className="prop-row">
+                <span className="prop-label">X Position</span>
+                <input type="number" className="prop-input" defaultValue={0} style={{width:60}}/>
+                <input type="number" className="prop-input" defaultValue={0} style={{width:60}}/>
+              </div>
+            </div>
+            <div className="prop-section">
+              <div className="prop-title">🎞️ Speed</div>
+              <div className="prop-row">
+                <span className="prop-label">Speed</span>
+                <input type="range" className="prop-slider" min={10} max={400} defaultValue={100}/>
+                <span className="prop-val">1x</span>
+              </div>
+              <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:4}}>
+                {['0.25x','0.5x','1x','1.5x','2x','4x'].map(s=>(
+                  <button key={s} style={{flex:1,padding:'3px 0',fontSize:10,borderRadius:5,border:'1px solid var(--border3)',background:'var(--bg3)',color:'var(--text2)',cursor:'pointer'}}
+                    onClick={()=>showNotif(`Speed: ${s}`)}>{s}</button>
+                ))}
+              </div>
+              <div style={{marginTop:8,display:'flex',gap:6}}>
+                <button style={{flex:1,padding:'5px',fontSize:10,borderRadius:6,border:'1px solid var(--border3)',background:'var(--bg3)',color:'var(--text2)',cursor:'pointer'}} onClick={()=>showNotif('🔄 Reversed!')}>⏪ Reverse</button>
+                <button style={{flex:1,padding:'5px',fontSize:10,borderRadius:6,border:'1px solid rgba(6,182,212,.3)',background:'rgba(6,182,212,.1)',color:'var(--accentG)',cursor:'pointer'}} onClick={()=>showNotif('🐌 Slo-Mo applied!')}>🐌 Slo-Mo</button>
+              </div>
+            </div>
+            <div className="prop-section">
+              <div className="prop-title">🔊 Audio</div>
+              <div className="prop-row">
+                <span className="prop-label">Volume</span>
+                <input type="range" className="prop-slider" min={0} max={200} defaultValue={100}/>
+                <span className="prop-val">100%</span>
+              </div>
+              <div className="prop-row">
+                <span className="prop-label">Fade In</span>
+                <input type="range" className="prop-slider" min={0} max={100} defaultValue={0}/>
+                <span className="prop-val">0f</span>
+              </div>
+              <div className="prop-row">
+                <span className="prop-label">Fade Out</span>
+                <input type="range" className="prop-slider" min={0} max={100} defaultValue={0}/>
+                <span className="prop-val">0f</span>
+              </div>
+            </div>
+            <div className="prop-section">
+              <div className="prop-title">🎨 Clip Color</div>
+              <div className="color-grid">
+                {['#7c3aed','#06b6d4','#f472b6','#fbbf24','#f87171','#4ade80','#818cf8','#fb923c','#38bdf8','#a78bfa','#34d399','#f9a8d4'].map(c=>(
+                  <div key={c} className="color-swatch" style={{background:c}} onClick={()=>showNotif('Color applied')}/>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="timeline-area">
+        <div className="timeline-header">
+          <button className="tl-btn" onClick={()=>showNotif('✂️ Cut at playhead')}>✂️ Cut</button>
+          <button className="tl-btn" onClick={()=>showNotif('🔗 Split')}>Split</button>
+          <button className="tl-btn" onClick={()=>showNotif('🗑️ Deleted')}>Delete</button>
+          <button className="tl-btn" onClick={()=>showNotif('➕ Added track')}>+ Track</button>
+          <button className={`tl-btn ${beatSync?'active':''}`} onClick={()=>{setBeatSync(s=>!s);showNotif(beatSync?'Beat sync off':'🎵 Beat sync on!');}}>
+            🎵 Beat Sync
+          </button>
+          <div className="tl-zoom">
+            <Icon name="zoom_out" size={12}/>
+            <input type="range" min={0.5} max={4} step={0.1} value={tlZoom} onChange={e=>setTlZoom(+e.target.value)} style={{width:80}}/>
+            <Icon name="zoom_in" size={12}/>
+            <span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--text3)',minWidth:32}}>{tlZoom.toFixed(1)}x</span>
+          </div>
+        </div>
+        <div className="timeline-body">
+          <div className="track-labels">
+            <div style={{height:20,background:'var(--bg2)',borderBottom:'1px solid var(--border3)'}}/>
+            {TRACK_DEFS.map(t=>(
+              <div key={t.id} className="track-label">
+                <div className={`track-label-icon ${t.icon}`}>{t.icon==='video'?'📹':t.icon==='audio'?'🎵':t.icon==='text'?'T':'✨'}</div>
+                <span style={{flex:1}}>{t.label}</span>
+                <button className="track-mute">M</button>
+              </div>
+            ))}
+          </div>
+          <div className="timeline-tracks" style={{flex:1,overflowX:'auto',overflowY:'hidden'}}>
+            <div className="tracks-inner" style={{width:totalPx+40,minWidth:'100%'}}>
+              {/* Ruler */}
+              <div className="ruler" style={{width:totalPx+40}}>
+                {Array.from({length:61},(_,i)=>(
+                  <React.Fragment key={i}>
+                    <div className={`ruler-tick ${i%5===0?'major':''}`} style={{left:i*10*pxPerFrame,height:i%5===0?8:4}}/>
+                    {i%10===0&&<span className="ruler-label" style={{left:i*10*pxPerFrame}}>{formatTime(i*10)}</span>}
+                  </React.Fragment>
+                ))}
+              </div>
+              {/* Tracks */}
+              {TRACK_DEFS.map(track=>(
+                <div key={track.id} className="track-row" style={{width:totalPx+40}}>
+                  {clips.filter(c=>c.track===track.id).map(clip=>(
+                    <div key={clip.id} className={`clip clip-${clip.type} ${selectedClip===clip.id?'selected':''}`}
+                      style={{left:clip.start*pxPerFrame,width:clip.duration*pxPerFrame-2}}
+                      onClick={()=>setSelectedClip(clip.id)}>
+                      <div className="clip-handle clip-handle-l"/>
+                      <div className="clip-label">{clip.label}</div>
+                      {clip.type==='audio'&&<AudioWave/>}
+                      <div className="clip-handle clip-handle-r"/>
+                    </div>
+                  ))}
+                  {/* Transitions */}
+                  {track.id===0&&[200,340].map(pos=>(
+                    <div key={pos} className="transition-zone" style={{left:pos*pxPerFrame-12}} onClick={()=>showNotif('🌀 Transition selected')}>⚡</div>
+                  ))}
+                </div>
+              ))}
+              {/* Beat markers */}
+              {beatSync&&beatMarkers.map(b=>(
+                <div key={b} className={`beat-marker ${b%160===0?'strong':''}`} style={{left:b*pxPerFrame,height:TRACK_DEFS.length*44+20,top:20}}/>
+              ))}
+              {/* Playhead */}
+              <div className="playhead" style={{left:playhead*pxPerFrame,height:TRACK_DEFS.length*44+20,top:20}}/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Export Modal */}
+    {showExport&&<ExportModal resolution={resolution} setResolution={setResolution} onExport={exportVideo}
+      onClose={()=>setShowExport(false)} exporting={exporting} progress={exportProgress}/>}
+
+    {/* Notification */}
+    {notif&&<div className={`notif notif-${notif.type}`}>{notif.msg}</div>}
+    </>
+  );
+}
+
+function PreviewCanvas({playing,playhead,activeEffects,cineMode}){
+  const canvasRef=useRef();
+  const frameRef=useRef(0);
+
+  useEffect(()=>{
+    const canvas=canvasRef.current;
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    let raf;
+    const draw=()=>{
+      const w=canvas.width,h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+      // Background gradient
+      const grad=ctx.createLinearGradient(0,0,0,h);
+      grad.addColorStop(0,'#0d0020');
+      grad.addColorStop(0.5,'#110033');
+      grad.addColorStop(1,'#000d1a');
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,w,h);
+      // Grid lines
+      ctx.strokeStyle='rgba(124,58,237,0.08)';
+      ctx.lineWidth=1;
+      for(let x=0;x<w;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+      for(let y=0;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+      // Animated orbs
+      const t=frameRef.current/60;
+      frameRef.current++;
+      const orbs=[
+        {x:w*.3+Math.sin(t*.7)*30,y:h*.3+Math.cos(t*.5)*20,r:60,c:'rgba(124,58,237,0.3)'},
+        {x:w*.7+Math.cos(t*.6)*25,y:h*.6+Math.sin(t*.8)*30,r:50,c:'rgba(244,114,182,0.2)'},
+        {x:w*.5+Math.sin(t*.4)*40,y:h*.5+Math.cos(t*.6)*35,r:40,c:'rgba(6,182,212,0.2)'},
+      ];
+      orbs.forEach(o=>{
+        const g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
+        g.addColorStop(0,o.c);g.addColorStop(1,'transparent');
+        ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+      });
+      // Sample "video content" visual
+      ctx.fillStyle='rgba(255,255,255,0.03)';
+      ctx.beginPath();ctx.roundRect(20,80,w-40,h-160,8);ctx.fill();
+      // VHS scanlines
+      if(activeEffects.includes('vhs')){
+        for(let y=0;y<h;y+=3){
+          ctx.fillStyle='rgba(0,0,0,0.05)';
+          ctx.fillRect(0,y,w,1);
+        }
+        // VHS noise
+        ctx.fillStyle=`rgba(255,255,255,${0.01+Math.random()*.02})`;
+        ctx.fillRect(Math.random()*w,Math.random()*h,w,2);
+      }
+      // Film grain
+      if(activeEffects.includes('grain')){
+        for(let i=0;i<200;i++){
+          ctx.fillStyle=`rgba(255,255,255,${Math.random()*.06})`;
+          ctx.fillRect(Math.random()*w,Math.random()*h,1,1);
+        }
+      }
+      // Particles
+      if(activeEffects.includes('particles')){
+        for(let i=0;i<8;i++){
+          const px=w*.5+Math.sin(t*1.2+i)*80;
+          const py=h*.5+Math.cos(t*.9+i*1.4)*120-t*10%h;
+          ctx.fillStyle=`hsla(${260+i*30},80%,70%,0.6)`;
+          ctx.beginPath();ctx.arc(px%w,py%h,2,0,Math.PI*2);ctx.fill();
+        }
+      }
+      // Neon border
+      if(activeEffects.includes('neon')){
+        ctx.strokeStyle='rgba(168,85,247,0.5)';
+        ctx.lineWidth=2;
+        ctx.shadowColor='rgba(168,85,247,0.8)';
+        ctx.shadowBlur=10;
+        ctx.beginPath();ctx.roundRect(4,4,w-8,h-8,8);ctx.stroke();
+        ctx.shadowBlur=0;
+      }
+      // Light leak
+      if(activeEffects.includes('lightleak')){
+        const lg=ctx.createLinearGradient(0,0,w,0);
+        lg.addColorStop(0,`rgba(255,200,100,${0.1+Math.sin(t)*0.05})`);
+        lg.addColorStop(1,'transparent');
+        ctx.fillStyle=lg;ctx.fillRect(0,0,w,h);
+      }
+      if(playing) raf=requestAnimationFrame(draw);
+      else draw_static();
+    };
+    const draw_static=()=>{
+      const w=canvas.width,h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const grad=ctx.createLinearGradient(0,0,0,h);
+      grad.addColorStop(0,'#0d0020');grad.addColorStop(1,'#000d1a');
+      ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle='rgba(124,58,237,0.06)';ctx.lineWidth=1;
+      for(let x=0;x<w;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+      for(let y=0;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+      const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,120);
+      g.addColorStop(0,'rgba(124,58,237,0.2)');g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    };
+    if(playing)draw(); else draw_static();
+    return()=>cancelAnimationFrame(raf);
+  },[playing,activeEffects]);
+
+  return <canvas ref={canvasRef} width={270} height={480} style={{position:'absolute',inset:0,pointerEvents:'none'}}/>;
+}
+
+function AudioWave(){
+  const pts=Array.from({length:20},()=>4+Math.random()*12);
+  return(
+    <svg className="clip-wave" viewBox={`0 0 ${pts.length*6} 16`} preserveAspectRatio="none">
+      {pts.map((h,i)=><rect key={i} x={i*6+1} y={16-h} width={4} height={h} fill="rgba(6,182,212,0.5)" rx={1}/>)}
+    </svg>
+  );
+}
+
+function MediaPanel({showNotif}){
+  const [items,setItems]=useState([
+    {id:1,type:'video',label:'Main.mp4',dur:'0:15',emoji:'🎬'},
+    {id:2,type:'video',label:'Hook.mp4',dur:'0:03',emoji:'🎬'},
+    {id:3,type:'audio',label:'Beat.mp3',dur:'2:30',emoji:'🎵'},
+    {id:4,type:'image',label:'Cover.png',dur:null,emoji:'🖼️'},
+    {id:5,type:'video',label:'Outro.mp4',dur:'0:05',emoji:'🎬'},
+    {id:6,type:'audio',label:'SFX.wav',dur:'0:02',emoji:'🔊'},
+  ]);
+  const fileRef=useRef();
+  const handleDrop=(e)=>{e.preventDefault();showNotif('📁 Files added!','info');};
+  return(
+    <>
+    <div className="panel-header">Media Library</div>
+    <div className="panel-scroll">
+      <div className="upload-zone" onDragOver={e=>e.preventDefault()} onDrop={handleDrop} onClick={()=>fileRef.current?.click()}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style={{fontSize:11,fontWeight:600,marginBottom:2}}>Drop files here</div>
+        <div style={{fontSize:9,color:'var(--text3)'}}>Video · Audio · Images</div>
+        <input ref={fileRef} type="file" accept="video/*,audio/*,image/*" multiple style={{display:'none'}} onChange={()=>showNotif('📁 File added!','info')}/>
+      </div>
+      <div className="media-grid">
+        {items.map(item=>(
+          <div key={item.id} className="media-item" onClick={()=>showNotif(`${item.emoji} ${item.label} selected`)}>
+            <div className="media-thumb">{item.emoji}<span style={{fontSize:9,color:'var(--text3)'}}>{item.label}</span></div>
+            {item.dur&&<div className="media-dur">{item.dur}</div>}
+            <div className={`media-type ${item.type}`}>{item.type}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+    </>
+  );
+}
+
+function EffectsPanel({activeEffects,toggleEffect}){
+  const [tab,setTab]=useState('effects');
+  return(
+    <>
+    <div className="panel-header">Effects & Filters</div>
+    <div className="tab-row">
+      <div className={`tab ${tab==='effects'?'active':''}`} onClick={()=>setTab('effects')}>Effects</div>
+      <div className={`tab ${tab==='presets'?'active':''}`} onClick={()=>setTab('presets')}>Presets</div>
+    </div>
+    <div className="panel-scroll">
+      <div className="effect-grid">
+        {EFFECTS.map(e=>(
+          <div key={e.id} className={`effect-card ${activeEffects.includes(e.id)?'active':''}`} onClick={()=>toggleEffect(e.id)}>
+            <div className="effect-icon">{e.emoji}</div>
+            <div className="effect-name">{e.name}</div>
+            <div className="effect-cat">{e.cat}</div>
+          </div>
+        ))}
+      </div>
+      {tab==='presets'&&<>
+        <div className="section-label">Community Presets</div>
+        {['Viral TikTok','YouTube Shorts Pro','Alight Motion Style','CapCut Trendy'].map(p=>(
+          <div key={p} style={{padding:'8px',background:'var(--bg3)',borderRadius:8,marginBottom:6,cursor:'pointer',border:'1px solid var(--border3)',display:'flex',alignItems:'center',gap:8}}
+            onClick={()=>{}}>
+            <span style={{fontSize:14}}>⭐</span>
+            <span style={{fontSize:11,flex:1}}>{p}</span>
+            <span style={{fontSize:9,color:'var(--text3)'}}>Apply</span>
+          </div>
+        ))}
+      </>}
+    </div>
+    </>
+  );
+}
+
+function ShakesPanel({shakes,activeShake,applyShake,intensity,setIntensity,speed,setSpeed,beatSync,setBeatSync}){
+  return(
+    <>
+    <div className="panel-header" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      <span>⚡ Shake System</span>
+      <span style={{fontSize:9,background:'rgba(248,113,113,.2)',color:'var(--accentR)',padding:'2px 7px',borderRadius:20,border:'1px solid rgba(248,113,113,.3)'}}>PRO</span>
+    </div>
+    <div className="panel-scroll">
+      <div className="section-label">Shake Styles</div>
+      <div className="shake-grid">
+        {shakes.map(s=>(
+          <div key={s.id} className={`shake-card ${s.id} ${activeShake===s.id?'active':''}`} onClick={()=>applyShake(s)}>
+            <div style={{fontSize:18,position:'relative'}}>{s.emoji}</div>
+            <div className="shake-name">{s.name}</div>
+            <div className="shake-tag">{s.tag}</div>
+            <div className="shake-intensity">
+              {Array.from({length:5},(_,i)=>(
+                <div key={i} className={`shake-dot ${i<s.dots?'on':''}`}/>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="section-label" style={{marginTop:12}}>Controls</div>
+      <div className="shake-slider-row">
+        <label>Intensity</label>
+        <input type="range" min={0} max={100} value={intensity} onChange={e=>setIntensity(+e.target.value)}/>
+        <span>{intensity}</span>
+      </div>
+      <div className="shake-slider-row">
+        <label>Speed</label>
+        <input type="range" min={0} max={100} value={speed} onChange={e=>setSpeed(+e.target.value)}/>
+        <span>{speed}</span>
+      </div>
+      <div className="shake-slider-row">
+        <label>Motion Blur</label>
+        <input type="range" min={0} max={100} defaultValue={40}/>
+        <span>40</span>
+      </div>
+      <div className="shake-slider-row">
+        <label>Decay</label>
+        <input type="range" min={0} max={100} defaultValue={60}/>
+        <span>60</span>
+      </div>
+
+      <div className="section-label">Beat Sync</div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+        <span style={{fontSize:11,color:'var(--text2)'}}>Auto-sync to music</span>
+        <button style={{padding:'4px 10px',borderRadius:20,border:`1px solid ${beatSync?'rgba(251,191,36,.4)':'var(--border3)'}`,
+          background:beatSync?'rgba(251,191,36,.15)':'var(--bg3)',color:beatSync?'var(--accentY)':'var(--text2)',
+          fontSize:10,cursor:'pointer',fontFamily:'var(--font)'}}
+          onClick={()=>setBeatSync(s=>!s)}>{beatSync?'🎵 Active':'Enable'}</button>
+      </div>
+      {beatSync&&<div style={{background:'rgba(251,191,36,.08)',border:'1px solid rgba(251,191,36,.2)',borderRadius:8,padding:8,fontSize:10,color:'var(--text2)'}}>
+        🎵 Analyzing beats... 120 BPM detected. Shakes will fire on beat drops.
+      </div>}
+
+      <div className="section-label">Combo Presets</div>
+      {[
+        {name:'Viral TikTok Pack',desc:'Velocity + RGB + Flash',color:'var(--accentR)'},
+        {name:'Cinematic Hit',desc:'Impact + Motion Blur',color:'var(--accent3)'},
+        {name:'Bass Sync Combo',desc:'Bass + Zoom + Beat Sync',color:'var(--accentG)'},
+      ].map(p=>(
+        <div key={p.name} style={{padding:'8px 10px',background:'var(--bg3)',borderRadius:8,
+          marginBottom:5,cursor:'pointer',border:`1px solid ${p.color}33`,transition:'.15s'}}
+          onClick={()=>{}}>
+          <div style={{fontSize:11,fontWeight:600,color:p.color}}>{p.name}</div>
+          <div style={{fontSize:9,color:'var(--text3)',marginTop:2}}>{p.desc}</div>
+        </div>
+      ))}
+    </div>
+    </>
+  );
+}
+
+function TransitionsPanel({transitions}){
+  const [active,setActive]=useState(null);
+  return(
+    <>
+    <div className="panel-header">Transitions</div>
+    <div className="panel-scroll">
+      <div className="section-label">Transition Type</div>
+      <div className="effect-grid">
+        {transitions.map(t=>(
+          <div key={t.id} className={`effect-card ${active===t.id?'active':''}`} onClick={()=>setActive(t.id)}>
+            <div className="effect-icon">{t.emoji}</div>
+            <div className="effect-name">{t.name}</div>
+          </div>
+        ))}
+      </div>
+      <div className="section-label">Duration</div>
+      <div className="shake-slider-row">
+        <label>Frames</label>
+        <input type="range" min={1} max={60} defaultValue={15}/>
+        <span>15f</span>
+      </div>
+      <div className="shake-slider-row">
+        <label>Ease</label>
+        <select style={{flex:1,height:24,background:'var(--bg3)',border:'1px solid var(--border3)',borderRadius:6,color:'var(--text1)',fontSize:10,padding:'0 6px'}}>
+          <option>Ease In Out</option><option>Linear</option><option>Spring</option><option>Bounce</option>
+        </select>
+      </div>
+    </div>
+    </>
+  );
+}
+
+function TextPanel({previewText,setPreviewText,showNotif}){
+  return(
+    <>
+    <div className="panel-header">Text & Subtitles</div>
+    <div className="panel-scroll">
+      <div className="section-label">Text Content</div>
+      <input value={previewText} onChange={e=>setPreviewText(e.target.value)}
+        style={{width:'100%',padding:'8px 10px',background:'var(--bg3)',border:'1px solid var(--border3)',
+          borderRadius:8,color:'var(--text1)',fontSize:12,fontFamily:'var(--font)',outline:'none',marginBottom:8}}/>
+      <div className="section-label">Font Style</div>
+      {['Space Grotesk','Impact','Bebas Neue','Montserrat'].map(f=>(
+        <div key={f} style={{padding:'6px 10px',background:'var(--bg3)',borderRadius:7,marginBottom:4,
+          cursor:'pointer',fontSize:11,border:'1px solid var(--border3)',fontFamily:f}} onClick={()=>showNotif(`Font: ${f}`)}>{f}</div>
+      ))}
+      <div className="section-label">Text Effects</div>
+      <div className="effect-grid">
+        {[{id:'glow_t',name:'Glow',emoji:'✨'},{id:'shadow',name:'Shadow',emoji:'🌑'},
+          {id:'outline',name:'Outline',emoji:'⬜'},{id:'gradient_t',name:'Gradient',emoji:'🌈'},
+          {id:'blur_t',name:'Blur BG',emoji:'💨'},{id:'shake_t',name:'Shake',emoji:'⚡'}
+        ].map(e=>(
+          <div key={e.id} className="effect-card" onClick={()=>showNotif(`${e.name} applied to text`)}
+            style={{transition:'.15s'}}
+            onMouseEnter={e2=>{e2.currentTarget.style.transform='translateY(-2px)'}}
+            onMouseLeave={e2=>{e2.currentTarget.style.transform=''}}>
+            <div className="effect-icon">{e.emoji}</div>
+            <div className="effect-name">{e.name}</div>
+          </div>
+        ))}
+      </div>
+      <div className="section-label">Auto Subtitles</div>
+      <button style={{width:'100%',padding:'10px',borderRadius:8,
+        background:'linear-gradient(135deg,rgba(124,58,237,.3),rgba(244,114,182,.2))',
+        border:'1px solid rgba(168,85,247,.4)',color:'var(--accent3)',fontSize:11,cursor:'pointer',fontFamily:'var(--font)',fontWeight:600}}
+        onClick={()=>showNotif('🤖 AI generating subtitles...')}>
+        🤖 AI Auto-Subtitle
+      </button>
+    </div>
+    </>
+  );
+}
+
+function ColorPanel({brightness,setBrightness,contrast,setContrast,saturation,setSaturation}){
+  return(
+    <>
+    <div className="panel-header">Color Grading</div>
+    <div className="panel-scroll">
+      <div className="section-label">Basic Adjustments</div>
+      {[
+        {label:'Brightness',val:brightness,set:setBrightness},
+        {label:'Contrast',val:contrast,set:setContrast},
+        {label:'Saturation',val:saturation,set:setSaturation},
+      ].map(p=>(
+        <div key={p.label} className="shake-slider-row">
+          <label>{p.label}</label>
+          <input type="range" min={0} max={100} value={p.val} onChange={e=>p.set(+e.target.value)}/>
+          <span>{p.val}</span>
+        </div>
+      ))}
+      {[
+        {label:'Highlights',defaultValue:50},{label:'Shadows',defaultValue:50},
+        {label:'Temperature',defaultValue:50},{label:'Tint',defaultValue:50},
+        {label:'Vignette',defaultValue:0},{label:'Sharpness',defaultValue:50},
+      ].map(p=>(
+        <div key={p.label} className="shake-slider-row">
+          <label>{p.label}</label>
+          <input type="range" min={0} max={100} defaultValue={p.defaultValue}/>
+          <span>{p.defaultValue}</span>
+        </div>
+      ))}
+      <div className="section-label">LUT Presets</div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5}}>
+        {['Cinematic','Moody','Vivid','Teal & Orange','B&W','Vintage'].map(l=>(
+          <div key={l} style={{padding:'7px',background:'var(--bg3)',borderRadius:7,textAlign:'center',
+            fontSize:10,cursor:'pointer',border:'1px solid var(--border3)',color:'var(--text2)',transition:'.15s'}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--accent)';e.currentTarget.style.color='var(--accent3)'}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='';e.currentTarget.style.color=''}}>{l}</div>
+        ))}
+      </div>
+    </div>
+    </>
+  );
+}
+
+function KeyframesPanel(){
+  const tracks=['Position X','Position Y','Scale','Rotation','Opacity','Blur'];
+  return(
+    <>
+    <div className="panel-header">Keyframe Editor</div>
+    <div className="panel-scroll">
+      <div className="section-label">Animation Tracks</div>
+      {tracks.map(t=>(
+        <div key={t} style={{marginBottom:8}}>
+          <div style={{fontSize:10,color:'var(--text2)',marginBottom:3,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            {t}<button style={{fontSize:8,padding:'2px 6px',borderRadius:4,border:'1px solid var(--border1)',
+              background:'rgba(124,58,237,.1)',color:'var(--accent3)',cursor:'pointer'}}>+ Key</button>
+          </div>
+          <div className="kf-track">
+            <div className="kf-line" style={{left:0,width:'100%'}}/>
+            {[20,50,80].map((p,i)=>(
+              <div key={i} className="kf-dot" style={{left:`${p}%`}}/>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="section-label">Easing</div>
+      {['Linear','Ease In','Ease Out','Ease In Out','Spring','Bounce','Custom'].map(e=>(
+        <div key={e} style={{padding:'5px 8px',background:'var(--bg3)',borderRadius:6,marginBottom:3,
+          fontSize:10,color:'var(--text2)',cursor:'pointer',border:'1px solid var(--border3)',display:'flex',alignItems:'center',gap:6}}>
+          <div style={{width:20,height:10,borderRadius:2,background:'rgba(124,58,237,.3)'}}/>
+          {e}
+        </div>
+      ))}
+    </div>
+    </>
+  );
+}
+
+function ExportModal({resolution,setResolution,onExport,onClose,exporting,progress}){
+  return(
+    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget&&!exporting)onClose();}}>
+      <div className="modal">
+        <div className="modal-title">🚀 Export Video</div>
+        {['4K','1080p','720p'].map(r=>(
+          <div key={r} className={`export-option ${resolution===r?'selected':''}`} onClick={()=>!exporting&&setResolution(r)}>
+            <span className={`export-badge _${r.replace('p','').replace('K','k')}`}>{r}</span>
+            <div>
+              <div style={{fontSize:12,fontWeight:600}}>{r==='4K'?'Ultra HD 4K':'Full HD '+r}</div>
+              <div style={{fontSize:10,color:'var(--text3)'}}>{r==='4K'?'3840×2160 · ~200MB':r==='1080p'?'1920×1080 · ~80MB':'1280×720 · ~40MB'}</div>
+            </div>
+            {resolution===r&&<span style={{marginLeft:'auto',color:'var(--accent3)',fontSize:18}}>✓</span>}
+          </div>
+        ))}
+        <div className="section-label" style={{color:'var(--text3)',marginTop:8}}>Format</div>
+        <select style={{width:'100%',padding:'7px 10px',background:'var(--bg3)',border:'1px solid var(--border3)',
+          borderRadius:8,color:'var(--text1)',fontSize:11,marginBottom:12,fontFamily:'var(--font)'}}>
+          <option>MP4 (H.264)</option><option>MP4 (H.265)</option><option>MOV</option><option>WebM</option>
+        </select>
+        {exporting&&<>
+          <div style={{fontSize:11,color:'var(--text2)',marginBottom:4}}>Rendering... {Math.round(progress)}%</div>
+          <div className="progress-bar"><div className="progress-fill" style={{width:`${progress}%`}}/></div>
+        </>}
+        <div style={{display:'flex',gap:8,marginTop:4}}>
+          {!exporting&&<button style={{flex:1,padding:'10px',borderRadius:8,background:'var(--bg3)',
+            border:'1px solid var(--border3)',color:'var(--text2)',cursor:'pointer',fontFamily:'var(--font)',fontSize:12}}
+            onClick={onClose}>Cancel</button>}
+          <button style={{flex:2,padding:'10px',borderRadius:8,cursor:exporting?'not-allowed':'pointer',
+            background:exporting?'var(--bg3)':'linear-gradient(135deg,var(--accent),var(--accentP))',
+            border:'none',color:'#fff',fontFamily:'var(--font)',fontSize:12,fontWeight:600}}
+            onClick={!exporting?onExport:undefined}>
+            {exporting?'Rendering...':'🚀 Export '+resolution}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatTime(frames){
+  const secs=Math.floor(frames/30);
+  const m=Math.floor(secs/60);
+  const s=secs%60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
