@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drop Shake Effect</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --border: #2a2a2a;
+    --accent: #ff3c3c;
+    --text: #f0f0f0;
+    --muted: #666;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 10vw, 6rem);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(255,60,60,0.4);
+  }
+
+  header p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 820px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Upload Zone */
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 3rem 1rem;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s, background 0.2s;
+    min-height: 160px;
+  }
+
+  .upload-zone:hover {
+    border-color: var(--accent);
+    background: #1a1010;
+  }
+
+  .upload-zone input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-zone svg {
+    width: 40px;
+    height: 40px;
+    stroke: var(--muted);
+  }
+
+  .upload-zone span {
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Video Wrapper */
+  .video-wrapper {
+    display: none;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    width: 100%;
+    aspect-ratio: 16/9;
+    will-change: transform;
+  }
+
+  video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+  }
+
+  /* Controls Panel */
+  .panel {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .panel-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .ctrl {
+    display: grid;
+    grid-template-columns: 140px 1fr 44px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ctrl label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .ctrl .val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: right;
+    font-family: 'Space Mono', monospace;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(255,60,60,0.5);
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.25rem 0;
+  }
+
+  /* Time setter */
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .time-row label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .time-row input[type=number] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 6px;
+    width: 90px;
+    outline: none;
+  }
+
+  .time-row input[type=number]:focus {
+    border-color: var(--accent);
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  button:hover {
+    background: #222;
+    border-color: #444;
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
+
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  button.primary:hover {
+    background: #cc2020;
+    border-color: #cc2020;
+  }
+
+  /* Flash overlay */
+  #flashOverlay {
+    position: fixed;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  @media (max-width: 560px) {
+    .ctrl {
+      grid-template-columns: 100px 1fr 40px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>DROP SHAKE</h1>
+  <p>Beat Drop Video Effekt — Lade dein Video hoch &amp; shake it</p>
+</header>
+
+<div class="container">
+
+  <div class="upload-zone" id="zone">
+    <input type="file" accept="video/*" id="filein">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14"/>
+      <rect x="3" y="6" width="12" height="12" rx="2"/>
+    </svg>
+    <span>Video ablegen oder klicken zum Hochladen</span>
+  </div>
+
+  <div class="video-wrapper" id="vwrap">
+    <video id="vid" controls></video>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="panel-title">⚡ Shake Setup</div>
+
+    <div class="time-row">
+      <label>Drop-Moment (Sek):</label>
+      <input type="number" id="droptime" value="0" min="0" step="0.1">
+      <button onclick="setDropNow()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+        Jetzt setzen
+      </button>
+    </div>
+    <p class="hint">→ Spiele das Video ab und klicke "Jetzt setzen" genau beim Drop-Moment.</p>
+
+    <div class="divider"></div>
+
+    <div class="ctrl">
+      <label>Shake-Stärke</label>
+      <input type="range" min="4" max="50" value="22" id="sIntensity" oninput="syncVal(this,'vIntensity')">
+      <span class="val" id="vIntensity">22</span>
+    </div>
+
+    <div class="ctrl">
+      <label>Shake-Dauer (ms)</label>
+      <input type="range" min="100" max="1400" step="50" value="550" id="sDuration" oninput="syncVal(this,'vDuration')">
+      <span class="val" id="vDuration">550</span>
+    </div>
+
+    <div class="ctrl">
+      <label>Flash-Stärke</label>
+      <input type="range" min="0" max="1" step="0.05" value="0.5" id="sFlash" oninput="syncVal(this,'vFlash')">
+      <span class="val" id="vFlash">0.50</span>
+    </div>
+
+    <div class="ctrl">
+      <label>Zoom-Burst</label>
+      <input type="range" min="1" max="1.4" step="0.01" value="1.1" id="sZoom" oninput="syncVal(this,'vZoom')">
+      <span class="val" id="vZoom">1.10</span>
+    </div>
+
+    <div class="ctrl">
+      <label>Blur-Burst</label>
+      <input type="range" min="0" max="12" step="1" value="4" id="sBlur" oninput="syncVal(this,'vBlur')">
+      <span class="val" id="vBlur">4</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="btn-row">
+      <button class="primary" onclick="playFromStart()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        Von vorne abspielen
+      </button>
+      <button onclick="testShake()">
+        ⚡ Shake testen
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="flashOverlay"></div>
+
+<script>
+const vid = document.getElementById('vid');
+const vwrap = document.getElementById('vwrap');
+const zone = document.getElementById('zone');
+const panel = document.getElementById('panel');
+const flashEl = document.getElementById('flashOverlay');
+let shakeScheduled = false;
+let animId;
+
+document.getElementById('filein').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  vid.src = URL.createObjectURL(file);
+  zone.style.display = 'none';
+  vwrap.style.display = 'block';
+  panel.style.display = 'flex';
+  vid.load();
+});
+
+function syncVal(el, id) {
+  const v = parseFloat(el.value);
+  document.getElementById(id).textContent = Number.isInteger(v) ? v : v.toFixed(2);
+}
+
+function setDropNow() {
+  document.getElementById('droptime').value = Math.round(vid.currentTime * 10) / 10;
+}
+
+function playFromStart() {
+  vid.currentTime = 0;
+  shakeScheduled = false;
+  vid.play();
+}
+
+function testShake() {
+  doShake();
+}
+
+vid.addEventListener('timeupdate', function() {
+  const drop = parseFloat(document.getElementById('droptime').value);
+  if (!shakeScheduled && vid.currentTime >= drop && vid.currentTime < drop + 0.25) {
+    shakeScheduled = true;
+    doShake();
+  }
+  if (vid.currentTime < drop - 0.5) {
+    shakeScheduled = false;
+  }
+});
+
+function doShake() {
+  const intensity = parseInt(document.getElementById('sIntensity').value);
+  const duration  = parseInt(document.getElementById('sDuration').value);
+  const flashAmt  = parseFloat(document.getElementById('sFlash').value);
+  const zoom      = parseFloat(document.getElementById('sZoom').value);
+  const blur      = parseInt(document.getElementById('sBlur').value);
+  const start     = performance.now();
+
+  // Flash
+  flashEl.style.transition = 'none';
+  flashEl.style.opacity = flashAmt;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      flashEl.style.transition = 'opacity 0.4s ease';
+      flashEl.style.opacity = 0;
+    });
+  });
+
+  cancelAnimationFrame(animId);
+
+  function frame(now) {
+    const elapsed  = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const env      = Math.pow(1 - progress, 1.6);
+
+    const s   = intensity * env;
+    const dx  = (Math.random() * 2 - 1) * s;
+    const dy  = (Math.random() * 2 - 1) * s;
+    const rot = (Math.random() * 2 - 1) * s * 0.3;
+    const sc  = 1 + (zoom - 1) * env;
+    const bl  = blur * env;
+
+    vwrap.style.transform  = `translate(${dx}px,${dy}px) rotate(${rot}deg) scale(${sc})`;
+    vwrap.style.filter     = `blur(${bl.toFixed(1)}px)`;
+
+    if (progress < 1) {
+      animId = requestAnimationFrame(frame);
+    } else {
+      vwrap.style.transform = '';
+      vwrap.style.filter    = '';
+    }
+  }
+
+  animId = requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
